@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Monitoring Dashboard</title>
+    <style>
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f4f8fb;
+            margin: 0;
+            padding: 0;
+        }
+
+        .header {
+            background-color: #5dcee2;
+            padding: 15px 30px;
+            display: flex;
+            align-items: center;
+            border-bottom: 4px solid #2aa3b8;
+        }
+
+        .header img {
+            height: 60px;
+            margin-right: 20px;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 60px auto;
+            padding: 30px;
+            background-color: #ffffff;
+            border: 1px solid #ccc;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        select {
+            width: 80%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: 1px solid #aaa;
+            margin-bottom: 20px;
+        }
+
+        button {
+            padding: 10px 24px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <img src="{{ url_for('static', filename='ncl-logo.jpg') }}" alt="Logo">
+        <h1>Health Monitoring Dashboard</h1>
+    </div>
+
+    <div class="container">
+        <h2>Select The Dragline</h2>
+        <form method="POST">
+            <select name="machine" required>
+                {% for m in machines %}
+                    <option value="{{ m }}">{{ m }}</option>
+                {% endfor %}
+            </select>
+            <br>
+            <button type="submit">Continue</button>
+        </form>
+    </div>
+
+</body>
+</html>

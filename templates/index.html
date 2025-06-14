@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Health Monitoring Dashboard</title>
+    <style>
+        .header {
+            background-color: #5dcee2;
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            height: 80px;
+        }
+
+        .header-text {
+            text-align: center;
+            flex: 1;
+        }
+
+        .header-text h1 {
+            margin: 0;
+            font-size: 28px;
+            color: #333;
+        }
+
+        .header-text h2 {
+            margin: 4px 0 0;
+            font-size: 18px;
+            color: #b91cc7;
+        }
+
+        body {
+            font-family: "Segoe UI", sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h2, h3 {
+            color: #343a40;
+        }
+
+        form {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+        }
+
+        select, input[type="number"], input[type="text"] {
+            padding: 8px;
+            margin: 5px 10px 5px 0;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 250px;
+        }
+
+        button {
+            padding: 8px 14px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .metrics {
+            padding: 15px;
+            background-color: #ffffff;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .warning {
+            background-color: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeeba;
+            padding: 12px;
+            margin-top: 20px;
+            border-radius: 6px;
+        }
+
+        .flex-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: space-between;
+        }
+
+        .plot, .gauge, .bar, .pie {
+            flex: 1 1 45%;
+            background-color: #ffffff;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+
+        .toast-warning {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 12px 18px;
+            border: 1px solid #ffeeba;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            animation: slideIn 0.4s ease-out;
+            max-width: 300px;
+            font-size: 14px;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20%);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            margin-top: 40px;
+            padding: 20px;
+            background-color: #343a40;
+            color: white;
+            text-align: center;
+            border-radius: 8px;
+        }
+
+        footer a {
+            color: #17a2b8;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header">
+            <img src="{{ url_for('static', filename='iit-logo.png') }}" class="logo">
+            <div class="header-text">
+                <h1>Monitoring Dashboard</h1>
+                <h2>Machine: {{ selected_machine }} | Component: {{ selected_component }}</h2>
+            </div>
+            <img src="{{ url_for('static', filename='ncl-logo.jpg') }}" class="logo">
+        </div>
+    </header>
+
+    <a href="{{ url_for('welcome') }}">← Back to Machine Selection</a>
+
+    <h2>Select Component</h2>
+    <form method="get" action="{{ url_for('dashboard') }}">
+        <input type="hidden" name="machine" value="{{ selected_machine }}">
+        <select name="component">
+            {% for comp in components %}
+                <option value="{{ comp }}" {% if comp == selected_component %}selected{% endif %}>{{ comp }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">View</button>
+    </form>
+
+    <h2>Add Failure Entry for {{ selected_component }}</h2>
+    <form method="POST">
+        <input type="hidden" name="component" value="{{ selected_component }}">
+        <input type="hidden" name="machine" value="{{ selected_machine }}">
+        <input type="number" step="any" name="hmr_value" required placeholder="Enter current HMR">
+        <input type="text" name="failure_description" required placeholder="Describe the failure (e.g., overheating)">
+        <input type="number" name="working_hours" required placeholder="Working Hours">
+        <input type="number" name="maintenance_hours" required placeholder="Maintenance Hours">
+        <input type="number" name="breakdown_hours" required placeholder="Breakdown Hours">
+        <button type="submit">Add</button>
+    </form>
+
+    <a href="{{ url_for('download_csv') }}">
+        <button>📥 Download the Data as CSV</button>
+    </a>
+
+    {% if error %}
+        <p class="error">{{ error }}</p>
+    {% else %}
+        <div class="metrics">
+            <h3>Next Maintenance Required After: {{ mttf }} hrs</h3>
+            <h3>Threshold Limit: {{ threshold }} hrs</h3>
+            <h3>Availability: {{ availability }}%</h3>
+        </div>
+
+        <div class="flex-container">
+            <div class="plot">
+                <h3>Failure Probability Plot</h3>
+                <img src="{{ failure_plot }}" width="100%" style="height: 300px; object-fit: contain;">
+            </div>
+            <div class="gauge">
+                <h3>Availability Gauge</h3>
+                <iframe src="{{ gauge_html }}" width="100%" height="300" frameborder="0"></iframe>
+            </div>
+        </div>
+
+        <div class="flex-container">
+            <div class="pie">
+                <h3>Hour Distribution Pie Chart</h3>
+                <img src="{{ pie_chart }}" alt="Pie Chart" width="100%" style="height: 300px; object-fit: contain;">
+            </div>
+            <div class="bar">
+                <h3>Failure Frequency by Component</h3>
+                <img src="{{ bar_chart }}" alt="Bar Chart" width="100%" style="height: 300px; object-fit: contain;">
+            </div>
+        </div>
+    {% endif %}
+
+    {% if show_warning %}
+    <div id="warningToast" class="toast-warning">
+        <strong>Warning:</strong> MTTF for <strong>{{ selected_component }}</strong> exceeds the threshold limit! Maintenance is required.
+    </div>
+    <script>
+        setTimeout(function() {
+            var toast = document.getElementById("warningToast");
+            if (toast) toast.style.display = "none";
+        }, 10000);
+    </script>
+    {% endif %}
+
+    <footer>
+        <p>&copy; 2025 Indian Institute of Technology (BHU) & NCL Collaboration. All Rights Reserved.</p>
+        <p>Contact us: <a href="mailto:support@iitbhu-ncl.in">support@iitbhu-ncl.in</a></p>
+    </footer>
+</body>
+</html>
